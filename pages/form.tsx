@@ -2,29 +2,46 @@ import React, { useState } from 'react';
 import MainLayout from '@components/_layouts/MainLayout';
 import Link from '@components/_shared/Link';
 import useForm from '@core/hooks/useForm';
+import CryptoJS from 'crypto-js';
 
 interface FormType {
-	nickname: string;
 	city: string;
 	story: string;
 }
 
-const Form = (): JSX.Element => {
-	const [isLoading, setIsLoading] = useState(false);
+const Form = (): JSX.Element=> {
+	const [isLoading, setIsLoading] = useState<false | string>(false);
 
 	const {form, mutateForm, resetForm} = useForm<FormType>({
-		nickname: '',
+		story: '',
 		city: '',
-		story: ''
 	});
 
-	const handleSubmit = e => {
-		e.preventDefault();
-		setIsLoading(true);
+	const TIMBUS = () => {
+		return CryptoJS.AES.encrypt(form.story, form.city).toString();
+	};
+
+	const SUBMIT = () => {
+		return CryptoJS.AES.decrypt(form.story, form.city).toString(CryptoJS.enc.Utf8);
+	};
+
+	const handleSubmit = () => {
+		setIsLoading('submit');
 		
 		setTimeout(() => {
-			console.log(form);
-			alert('submitted');
+			const result = SUBMIT();
+			alert(result);
+			resetForm();
+			setIsLoading(false);
+		}, 1000);
+	};
+	
+	const handleTimbus = () => {
+		setIsLoading('timbus');
+		
+		setTimeout(() => {
+			const result = TIMBUS();
+			alert(result);
 			resetForm();
 			setIsLoading(false);
 		}, 1000);
@@ -32,19 +49,23 @@ const Form = (): JSX.Element => {
 
 	return (
 		<MainLayout title="Form" className="flex-cc col">
-			<h1 className="mb-4 text-4xl font-bold">Form</h1>
+			<h1 className="mb-4 text-4xl font-bold">f orm</h1>
 
-			<form onSubmit={handleSubmit} className="flex-cs col gap-4 mb-12">
-				<input type="text" name="nickname" value={form.nickname} onChange={mutateForm} placeholder="who are you?" className="border"/>
-				<input type="text" name="city" value={form.city} onChange={mutateForm} placeholder="where you from?" className="border"/>
-				<textarea name="story" value={form.story} onChange={mutateForm} placeholder="What is your story?" className="border"/>
+			<div className="flex-cc col gap-4 mb-12 w-80">
+				<textarea name="story" value={form.story} onChange={mutateForm} placeholder="What is your story?" rows={4} className="w-full border"/>
+				<input type="password" name="city" value={form.city} onChange={mutateForm} placeholder="do you know something?" className="w-full border"/>
 
-				<button type="submit" className="bg-black text-white p-2 ml-auto" data-loading={isLoading}>
+				<div className="flex-cc gap-4">
+					<button onClick={handleSubmit} className="p-2 ml-auto text-white bg-accent" data-loading={isLoading === 'submit'}>
 					SUBMIT <i className="spinner"></i>
-				</button>
-			</form>
+					</button>
+					<button onClick={handleTimbus} className="p-2 ml-auto text-white bg-black" data-loading={isLoading === 'timbus'}>
+					TIMBUS <i className="spinner"></i>
+					</button>
+				</div>
+			</div>
 
-			<Link href="/" className="px-4 py-2 text-white bg-accent hover:bg-opacity-80">BACK HOME</Link>
+			<Link href="/" className="px-4 py-2 text-white bg-gray-400 hover:bg-opacity-80">BACK HOME</Link>
 		</MainLayout>
 	);
 };
